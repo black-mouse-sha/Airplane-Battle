@@ -38,7 +38,7 @@
 
 | 引导页 | 对局中 |
 |:---:|:---:|
-| <img src="docs/images/intro.png" width="360" alt="引导页：Enter 进入游戏，B 暂停，V 静音"> | <img src="docs/images/gameplay.png" width="360" alt="对局中：分数、生命、敌机、子弹、爆炸"> |
+| <img src="docs/images/intro.webp" width="360" alt="引导页：Enter 进入游戏，B 暂停，V 静音"> | <img src="docs/images/gameplay.webp" width="360" alt="对局中：分数、生命、敌机、子弹、爆炸"> |
 | 贴着 Enter 进游戏，B 暂停 / V 静音 | 左上分数、右上生命；命中 +100，撞机 -1 血 |
 
 <details>
@@ -46,7 +46,7 @@
 
 | 暂停 |
 |:---:|
-| <img src="docs/images/paused.png" width="360" alt="暂停画面：画面中央显示 PAUSED (B 继续)"> |
+| <img src="docs/images/paused.webp" width="360" alt="暂停画面：画面中央显示 PAUSED (B 继续)"> |
 | 暂停时只重绘不更新；中央提示带底色，压得住背景 |
 
 </details>
