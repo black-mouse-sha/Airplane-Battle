@@ -1,0 +1,32 @@
+name: smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  headless-smoke:
+    name: 无头自检（600 帧）
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 跑 600 帧自检
+        # --smoke-test 内部会把 SDL 切到 dummy 驱动，不需要真实显示器与声卡
+        run: python game.py --smoke-test 600
+
+      - name: 语法检查
+        run: python -m compileall -q game.py tools

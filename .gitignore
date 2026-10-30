@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# 编辑器 / IDE
+.idea/
+.vscode/
+*.iml
+
+# 系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 工具中间产物（架构图的候选 JSON 与渲染缓存）
+.archify/
+_screenshots/
+*.log

@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "diagram_type": "tree",
+  "meta": {
+    "title": "Airplane-Battle 仓库结构与 game.py 模块树",
+    "subtitle": "从仓库根一路展开到 game.py 内部：顶层是文件树，展开 game.py 后是它的常量、素材工具、类型与启动四组。链接只表示归属，不表示调用。",
+    "output": "docs/diagrams/tree-airplane-battle-20261030-164907/airplane-battle-modules.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase"
+  },
+  "layout": {
+    "direction": "right"
+  },
+  "nodes": [
+    { "id": "repo", "label": "Airplane-Battle 仓库", "sublabel": "Pygame 飞机大战，主程序单文件" },
+
+    { "id": "f_gamepy", "label": "game.py", "parent": "repo", "sublabel": "主程序，555 行" },
+    { "id": "d_game", "label": "game/", "parent": "repo", "sublabel": "运行时素材" },
+    { "id": "d_tools", "label": "tools/", "parent": "repo", "sublabel": "素材维护" },
+    { "id": "d_docs", "label": "docs/", "parent": "repo", "sublabel": "文档与截图" },
+    { "id": "d_ci", "label": ".github/workflows/", "parent": "repo", "sublabel": "CI 自检" },
+    { "id": "d_root", "label": "仓库根文件", "parent": "repo", "sublabel": "入口、依赖、许可" },
+
+    { "id": "g_config", "label": "基础配置常量", "parent": "f_gamepy", "sublabel": "窗口 / FPS / 速度 / 节奏 / 颜色 / 字体栈" },
+    { "id": "g_assets", "label": "素材工具", "parent": "f_gamepy", "sublabel": "拼路径、读素材、等比缩放与字体回退" },
+    { "id": "g_types", "label": "类型", "parent": "f_gamepy", "sublabel": "音效板、玩家、对局状态机" },
+    { "id": "g_boot", "label": "启动", "parent": "f_gamepy", "sublabel": "装配素材、初始化、解析参数" },
+
+    { "id": "a_path", "label": "resource_path", "parent": "g_assets", "sublabel": "拼成 game/ 下的绝对路径" },
+    { "id": "a_image", "label": "load_image", "parent": "g_assets", "sublabel": "读图 + convert_alpha" },
+    { "id": "a_sound", "label": "load_sound", "parent": "g_assets", "sublabel": "失败返回 None 静音继续" },
+    { "id": "a_fit", "label": "fit_image", "parent": "g_assets", "sublabel": "等比缩放进 box" },
+    { "id": "a_frames", "label": "load_explosion_frames", "parent": "g_assets", "sublabel": "竖向序列图切 4 帧" },
+    { "id": "a_font", "label": "safe_font", "parent": "g_assets", "sublabel": "CJK 字体栈，失败回退默认字体" },
+
+    { "id": "t_sound", "label": "SoundBoard", "parent": "g_types", "sublabel": "play / toggle_mute" },
+    { "id": "t_player", "label": "Player", "parent": "g_types", "sublabel": "移动、扣血、无敌帧" },
+    { "id": "t_game", "label": "Game", "parent": "g_types", "sublabel": "引导页 → 对局 → 暂停 / 结束" },
+    { "id": "t_nokeys", "label": "_NoKeys", "parent": "g_types", "sublabel": "无头自检用的假按键表" },
+
+    { "id": "b_assets", "label": "build_assets", "parent": "g_boot", "sublabel": "一次读齐图与爆炸帧" },
+    { "id": "b_init", "label": "init_pygame", "parent": "g_boot", "sublabel": "headless 切 SDL dummy 驱动" },
+    { "id": "b_main", "label": "main", "parent": "g_boot", "sublabel": "--smoke-test / --mute，finally 里 quit" },
+
+    { "id": "img", "label": "img/", "parent": "d_game", "sublabel": "21 个文件：飞船、敌机、子弹、爆炸序列、背景、引导页" },
+    { "id": "snd", "label": "sound/", "parent": "d_game", "sublabel": "4 个 mp3" },
+
+    { "id": "s_bgm", "label": "background.mp3", "parent": "snd", "sublabel": "循环背景乐" },
+    { "id": "s_shoot", "label": "shoot.mp3", "parent": "snd", "sublabel": "发射" },
+    { "id": "s_hit", "label": "destroyed.mp3", "parent": "snd", "sublabel": "击中敌机" },
+    { "id": "s_die", "label": "die.mp3", "parent": "snd", "sublabel": "玩家死亡" },
+
+    { "id": "clean", "label": "clean_assets.py", "parent": "d_tools", "sublabel": "漫水填充去掉烘焙的棋盘格 / 白底" },
+
+    { "id": "doc_usage", "label": "USAGE.md", "parent": "d_docs", "sublabel": "使用手册" },
+    { "id": "doc_arch", "label": "ARCHITECTURE.md", "parent": "d_docs", "sublabel": "架构说明" },
+    { "id": "doc_images", "label": "images/", "parent": "d_docs", "sublabel": "README 截图与图标" },
+    { "id": "doc_diagrams", "label": "diagrams/", "parent": "d_docs", "sublabel": "交互式架构图" },
+
+    { "id": "smoke", "label": "smoke.yml", "parent": "d_ci", "sublabel": "--smoke-test 600 帧 + compileall" },
+
+    { "id": "r_readme", "label": "README.md", "parent": "d_root", "sublabel": "项目说明与截图" },
+    { "id": "r_changelog", "label": "CHANGELOG.md", "parent": "d_root", "sublabel": "变更记录" },
+    { "id": "r_req", "label": "requirements.txt", "parent": "d_root", "sublabel": "pygame 2.5 以上" },
+    { "id": "r_bat", "label": "run.bat", "parent": "d_root", "sublabel": "Windows 一键启动" },
+    { "id": "r_sh", "label": "run.sh", "parent": "d_root", "sublabel": "macOS / Linux 一键启动" },
+    { "id": "r_index", "label": "index.html", "parent": "d_root", "sublabel": "GitHub Pages 入口" },
+    { "id": "r_license", "label": "LICENSE", "parent": "d_root", "sublabel": "MIT" }
+  ]
+}

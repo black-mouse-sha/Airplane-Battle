@@ -1,0 +1,3 @@
+# 运行期唯一依赖：pygame（自带 SDL2 的窗口、音频、字体、图像模块）
+# Windows / macOS / Linux 都有官方 wheel，不需要编译
+pygame>=2.5,<3

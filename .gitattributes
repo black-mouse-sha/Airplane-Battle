@@ -1,0 +1,8 @@
+# 统一换行，避免 Windows 提交的 CRLF 让 diff 全是噪音
+* text=auto eol=lf
+
+# 二进制素材不做文本处理
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.mp3 binary

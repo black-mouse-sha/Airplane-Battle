@@ -1,0 +1,368 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "飞机大战：从素材到画面的数据流",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "output": "docs/diagrams/dataflow-airplane-battle-20261030-165453/airplane-battle-asset-flow.html",
+    "legend": {
+      "entries": {
+        "security": {
+          "label": "素材异常"
+        }
+      }
+    }
+  },
+  "stages": [
+    {
+      "label": "磁盘素材"
+    },
+    {
+      "label": "加载解码"
+    },
+    {
+      "label": "缩放组装"
+    },
+    {
+      "label": "运行时状态"
+    },
+    {
+      "label": "渲染与音频"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "img_assets",
+      "type": "database",
+      "label": "game/img",
+      "sublabel": "飞船 · 敌机 ×6 · 子弹",
+      "tag": "PNG",
+      "stage": 0,
+      "row": 0
+    },
+    {
+      "id": "boom_png",
+      "type": "database",
+      "label": "boom.png",
+      "sublabel": "63×241 竖排 4 帧",
+      "tag": "序列图",
+      "stage": 0,
+      "row": 1
+    },
+    {
+      "id": "audio_files",
+      "type": "database",
+      "label": "game/sound",
+      "sublabel": "背景乐 + 3 音效",
+      "tag": "MP3",
+      "stage": 0,
+      "row": 2
+    },
+    {
+      "id": "sys_fonts",
+      "type": "external",
+      "label": "系统字体栈",
+      "sublabel": "雅黑 · 黑体",
+      "tag": "CJK",
+      "stage": 0,
+      "row": 3
+    },
+    {
+      "id": "load_image",
+      "type": "backend",
+      "label": "load_image()",
+      "sublabel": "convert_alpha 透明",
+      "stage": 1,
+      "row": 0
+    },
+    {
+      "id": "load_explosion",
+      "type": "backend",
+      "label": "爆炸帧加载",
+      "sublabel": "subsurface 切 4 帧",
+      "stage": 1,
+      "row": 1
+    },
+    {
+      "id": "load_sound",
+      "type": "backend",
+      "label": "load_sound()",
+      "sublabel": "缺失 → None + 警告",
+      "stage": 1,
+      "row": 2
+    },
+    {
+      "id": "safe_font",
+      "type": "backend",
+      "label": "safe_font()",
+      "sublabel": "SysFont 失败回退",
+      "stage": 1,
+      "row": 3
+    },
+    {
+      "id": "bg_ui",
+      "type": "backend",
+      "label": "背景 / UI 曲面",
+      "sublabel": "600×600 直接缩放",
+      "stage": 2,
+      "row": 0
+    },
+    {
+      "id": "fit_image",
+      "type": "backend",
+      "label": "fit_image()",
+      "sublabel": "等比缩放不拉扁",
+      "stage": 2,
+      "row": 1
+    },
+    {
+      "id": "boom_frames",
+      "type": "backend",
+      "label": "爆炸帧数组",
+      "sublabel": "4 × 48×48 Surface",
+      "stage": 2,
+      "row": 2
+    },
+    {
+      "id": "hazard",
+      "type": "external",
+      "label": "缺素材出路",
+      "sublabel": "退出 / 静音降级",
+      "stage": 2,
+      "row": 3
+    },
+    {
+      "id": "soundboard",
+      "type": "backend",
+      "label": "SoundBoard",
+      "sublabel": "sounds + muted",
+      "stage": 2,
+      "row": 4
+    },
+    {
+      "id": "player",
+      "type": "backend",
+      "label": "Player",
+      "sublabel": "x,y · health",
+      "stage": 3,
+      "row": 1
+    },
+    {
+      "id": "entities",
+      "type": "backend",
+      "label": "敌机 / 子弹",
+      "sublabel": "enemies[] bullets[]",
+      "stage": 3,
+      "row": 2
+    },
+    {
+      "id": "hud",
+      "type": "backend",
+      "label": "score 与 HUD",
+      "sublabel": "36px / 28px 字体",
+      "stage": 3,
+      "row": 3
+    },
+    {
+      "id": "draw",
+      "type": "backend",
+      "label": "Game.draw()",
+      "sublabel": "背景→…→HUD→flip",
+      "stage": 4,
+      "row": 0
+    },
+    {
+      "id": "smoke",
+      "type": "external",
+      "label": "stdout 自检",
+      "sublabel": "[smoke] score/life",
+      "stage": 4,
+      "row": 3
+    },
+    {
+      "id": "play",
+      "type": "backend",
+      "label": "play(name)",
+      "sublabel": "射击 / 击中 / 死亡",
+      "stage": 4,
+      "row": 4
+    }
+  ],
+  "flows": [
+    {
+      "id": "f-img-load",
+      "from": "img_assets",
+      "to": "load_image",
+      "label": "PNG 路径"
+    },
+    {
+      "id": "f-boom-load",
+      "from": "boom_png",
+      "to": "load_explosion",
+      "label": "竖排序列图"
+    },
+    {
+      "id": "f-audio-load",
+      "from": "audio_files",
+      "to": "load_sound",
+      "label": "mp3 路径"
+    },
+    {
+      "id": "f-fonts-safe",
+      "from": "sys_fonts",
+      "to": "safe_font",
+      "label": "字体名清单"
+    },
+    {
+      "id": "f-load-fit",
+      "from": "load_image",
+      "to": "fit_image",
+      "label": "原始 Surface"
+    },
+    {
+      "id": "f-load-bg",
+      "from": "load_image",
+      "to": "bg_ui",
+      "label": "背景 / 引导页"
+    },
+    {
+      "id": "f-load-hazard",
+      "from": "load_image",
+      "to": "hazard",
+      "label": "缺图 → 报错退出",
+      "variant": "security",
+      "classification": "fatal"
+    },
+    {
+      "id": "f-sound-hazard",
+      "from": "load_sound",
+      "to": "hazard",
+      "label": "缺音效 → 警告",
+      "variant": "security",
+      "classification": "degrade"
+    },
+    {
+      "id": "f-explode-frames",
+      "from": "load_explosion",
+      "to": "boom_frames",
+      "label": "切分 4 帧"
+    },
+    {
+      "id": "f-fit-player",
+      "from": "fit_image",
+      "to": "player",
+      "label": "飞船 60×44"
+    },
+    {
+      "id": "f-fit-entities",
+      "from": "fit_image",
+      "to": "entities",
+      "label": "敌机 / 子弹贴图"
+    },
+    {
+      "id": "f-frames-entities",
+      "from": "boom_frames",
+      "to": "entities",
+      "label": "爆炸帧序列"
+    },
+    {
+      "id": "f-player-draw",
+      "from": "player",
+      "to": "draw",
+      "label": "坐标 + health"
+    },
+    {
+      "id": "f-entities-draw",
+      "from": "entities",
+      "to": "draw",
+      "label": "子弹 / 敌机"
+    },
+    {
+      "id": "f-hud-draw",
+      "from": "hud",
+      "to": "draw",
+      "label": "score / life 文本"
+    },
+    {
+      "id": "f-bg-draw",
+      "from": "bg_ui",
+      "to": "draw",
+      "label": "背景 / UI 曲面"
+    },
+    {
+      "id": "f-fonts-hud",
+      "from": "safe_font",
+      "to": "hud",
+      "label": "字体对象"
+    },
+    {
+      "id": "f-sound-board",
+      "from": "load_sound",
+      "to": "soundboard",
+      "label": "Sound 句柄"
+    },
+    {
+      "id": "f-board-play",
+      "from": "soundboard",
+      "to": "play",
+      "label": "play(name)"
+    },
+    {
+      "id": "f-player-smoke",
+      "from": "player",
+      "to": "smoke",
+      "label": "life"
+    },
+    {
+      "id": "f-entities-smoke",
+      "from": "entities",
+      "to": "smoke",
+      "label": "敌机数 / 子弹数"
+    },
+    {
+      "id": "f-hud-smoke",
+      "from": "hud",
+      "to": "smoke",
+      "label": "score"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "素材只在启动时读一次",
+      "items": [
+        "load_image() 用 convert_alpha 保留透明通道，返回 pygame.Surface；飞船、敌机、子弹再经 fit_image() 等比缩放进 60×44 / 48×48 / 6×12，避免拉伸变形",
+        "背景 began.png 与引导页 ui.png 不走 fit_image()，而是 load_image(path, (600,600)) 直接缩放到与屏幕同尺寸",
+        "boom.png 是 63×241 的竖排序列图，load_explosion_frames() 按 height/4 切出 4 张并统一缩放到 48×48"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "两条异常边，两种后果",
+      "items": [
+        "缺图：load_image() 先 os.path.exists 检查，缺文件抛 SystemExit 并打印中文提示（含完整路径），或素材无法解析时抛「素材无法解析」——进程直接结束，窗口一帧都不会出现",
+        "缺音效：load_sound() 只向 stderr 打印 [警告]，返回 None，游戏静音继续跑；SoundBoard.play() 对 None 直接跳过",
+        "音频设备初始化失败（init_pygame）同样只告警，sounds 直接为空字典"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "每帧的消费顺序",
+      "items": [
+        "Game.draw() 依次 blit：背景 → 飞船 → 子弹 → 敌机 → 爆炸帧，再垫一层半透明黑底画 HUD（score / life），最后 pygame.display.flip()",
+        "爆炸帧索引 = min(3, (now − start_time) / 250ms)，1 秒 4 帧，最后停在余烬那一帧",
+        "score 在 _resolve_bullet_hits() 命中时 +100，HUD 每帧读取；Player.hit() 在 800ms 无敌期内不扣血"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "自检通道",
+      "items": [
+        "--smoke-test N 用 SDL dummy 视频/音频驱动跑 N 帧，不读键盘、自动开火",
+        "跑满后向 stdout 打印 [smoke] 帧数、score、life、敌人数量、子弹数量，供 CI 断言",
+        "该通道与渲染并行：同一份运行时状态分别流向 pygame.display 与 stdout"
+      ]
+    }
+  ]
+}

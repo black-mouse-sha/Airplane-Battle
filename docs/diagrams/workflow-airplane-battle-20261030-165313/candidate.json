@@ -1,0 +1,209 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "飞机大战：一局游戏的完整流程",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "legend": {
+      "entries": {
+        "backend": { "label": "游戏逻辑" },
+        "security": { "label": "分支与失败" },
+        "external": { "label": "外部入口" }
+      }
+    },
+    "output": "docs/diagrams/workflow-airplane-battle-20261030-165313/airplane-battle-workflow.html"
+  },
+  "lanes": [
+    { "id": "launch", "label": "① 启动与参数" },
+    { "id": "init", "label": "② 初始化与素材" },
+    { "id": "boot", "label": "③ 音效与引导页" },
+    { "id": "loop", "label": "④ 主循环（60 FPS）" },
+    { "id": "settle", "label": "⑤ 判定与绘制" },
+    { "id": "ending", "label": "⑥ 终局与退出" }
+  ],
+  "mainPath": ["run", "args", "init", "assets", "intro", "events", "update", "collide", "draw", "quit"],
+  "nodes": [
+    {
+      "id": "run",
+      "lane": "launch",
+      "col": 0,
+      "type": "external",
+      "label": "python game.py",
+      "sublabel": "脚本入口 main()"
+    },
+    {
+      "id": "args",
+      "lane": "launch",
+      "col": 1,
+      "type": "backend",
+      "label": "argparse 解析参数",
+      "sublabel": "--smoke-test N / --mute"
+    },
+    {
+      "id": "init",
+      "lane": "init",
+      "col": 1,
+      "type": "backend",
+      "yOffset": -70,
+      "label": "init_pygame()",
+      "sublabel": "pygame.init → mixer.init"
+    },
+    {
+      "id": "assets",
+      "lane": "init",
+      "col": 2,
+      "type": "backend",
+      "yOffset": -70,
+      "label": "build_assets()",
+      "sublabel": "飞船 / 6 敌机 / 爆炸 4 帧 / 背景 / UI"
+    },
+    {
+      "id": "audio_fail",
+      "lane": "init",
+      "col": 1,
+      "type": "security",
+      "yOffset": 80,
+      "label": "音频设备不可用",
+      "sublabel": "audio_ok = False"
+    },
+    {
+      "id": "missing",
+      "lane": "init",
+      "col": 3,
+      "type": "security",
+      "yOffset": -70,
+      "label": "素材缺失",
+      "sublabel": "报错 + SystemExit"
+    },
+    {
+      "id": "intro",
+      "lane": "boot",
+      "col": 2,
+      "type": "backend",
+      "label": "show_instructions()",
+      "sublabel": "Enter 开始 / ESC 退出"
+    },
+    {
+      "id": "events",
+      "lane": "boot",
+      "col": 3,
+      "type": "backend",
+      "label": "handle_events()",
+      "sublabel": "QUIT·ESC / B 暂停 / V 静音"
+    },
+    {
+      "id": "update",
+      "lane": "loop",
+      "col": 3,
+      "type": "backend",
+      "yOffset": -60,
+      "label": "update() 每帧更新",
+      "sublabel": "移动/射击/生成/位移"
+    },
+    {
+      "id": "pause",
+      "lane": "loop",
+      "col": 5,
+      "type": "security",
+      "yOffset": 70,
+      "label": "暂停中",
+      "sublabel": "只重绘，跳过更新"
+    },
+    {
+      "id": "collide",
+      "lane": "settle",
+      "col": 4,
+      "type": "backend",
+      "label": "碰撞判定",
+      "sublabel": "+100 分 ／ 扣 1 血 + 800ms 无敌"
+    },
+    {
+      "id": "draw",
+      "lane": "settle",
+      "col": 5,
+      "type": "backend",
+      "label": "draw() 与 flip()",
+      "sublabel": "背景→飞船→子弹→敌机→爆炸→HUD"
+    },
+    {
+      "id": "esc_exit",
+      "lane": "ending",
+      "col": 2,
+      "type": "security",
+      "label": "ESC / 关窗退出",
+      "sublabel": "跳过对局，finally 仍 quit"
+    },
+    {
+      "id": "death",
+      "lane": "ending",
+      "col": 4,
+      "type": "security",
+      "label": "生命 ≤ 0",
+      "sublabel": "死亡停顿 3000ms"
+    },
+    {
+      "id": "quit",
+      "lane": "ending",
+      "col": 5,
+      "type": "backend",
+      "label": "pygame.quit()",
+      "sublabel": "finally 保证执行"
+    }
+  ],
+  "edges": [
+    { "id": "e-run-args", "from": "run", "to": "args", "role": "main", "variant": "default" },
+    { "id": "e-args-init", "from": "args", "to": "init", "role": "main", "variant": "default" },
+    { "id": "e-init-assets", "from": "init", "to": "assets", "role": "main", "variant": "default" },
+    { "id": "e-assets-intro", "from": "assets", "to": "intro", "label": "普通模式", "role": "main", "variant": "default" },
+    { "id": "e-intro-events", "from": "intro", "to": "events", "label": "Enter 开始", "role": "main", "variant": "default" },
+    { "id": "e-events-update", "from": "events", "to": "update", "label": "未暂停", "role": "main", "variant": "default" },
+    { "id": "e-update-collide", "from": "update", "to": "collide", "role": "main", "variant": "default" },
+    { "id": "e-collide-draw", "from": "collide", "to": "draw", "role": "main", "variant": "default" },
+    { "id": "e-draw-quit", "from": "draw", "to": "quit", "label": "退出循环", "role": "main", "variant": "default" },
+    { "id": "e-init-audiofail", "from": "init", "to": "audio_fail", "label": "mixer.init 抛错", "role": "branch", "variant": "security" },
+    { "id": "e-audiofail-intro", "from": "audio_fail", "to": "intro", "label": "静音继续", "role": "branch", "variant": "dashed" },
+    { "id": "e-assets-missing", "from": "assets", "to": "missing", "label": "文件不存在", "role": "error", "variant": "security" },
+    { "id": "e-intro-esc", "from": "intro", "to": "esc_exit", "label": "ESC / 关窗", "role": "error", "variant": "security" },
+    { "id": "e-events-pause", "from": "events", "to": "pause", "label": "B 键", "role": "branch", "variant": "security" },
+    { "id": "e-pause-draw", "from": "pause", "to": "draw", "label": "只重绘", "role": "return", "variant": "dashed" },
+    { "id": "e-collide-death", "from": "collide", "to": "death", "label": "生命 ≤ 0", "role": "branch", "variant": "security" },
+    { "id": "e-death-quit", "from": "death", "to": "quit", "label": "停顿结束", "role": "branch", "variant": "dashed" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "一局的时间常数",
+      "items": [
+        "clock.tick(60) 控帧；SHOT_COOLDOWN 100ms，ENEMY_SPAWN_INTERVAL 300ms，MAX_ENEMIES 15",
+        "命中 +100 分；撞击 INVULNERABLE_TIME 800ms；爆炸 1000ms 播 4 帧",
+        "死亡后 DEATH_FREEZE 3000ms 仍处理事件，然后 running=False"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "--smoke-test 自检旁路",
+      "items": [
+        "headless 时先设 SDL_VIDEODRIVER / SDL_AUDIODRIVER 为 dummy，再 pygame.init()",
+        "跳过 show_instructions()，用 _NoKeys 自动开火，跑满 N 帧打印 [smoke] 后返回"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "失败与提示原文",
+      "items": [
+        "mixer.init 抛错 → 打印中文警告，audio_ok = False，游戏静音继续",
+        "load_image 缺文件或解析失败 → 中文报错 + SystemExit，提示检查 game/ 目录",
+        "load_sound 缺文件 → 警告后返回 None，音效被跳过"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "证据说明",
+      "items": [
+        "事实取自工作区 game.py（555 行）：argparse、init_pygame、build_assets、Game.play、_wait_with_events、draw",
+        "该工作区相对 HEAD f299880 有未提交改动（原版为单文件旧版），故未绑定 revision 引用"
+      ]
+    }
+  ]
+}

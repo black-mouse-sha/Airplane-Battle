@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "飞机大战 · 单帧调用时序",
+    "locale": "zh-CN",
+    "output": "docs/diagrams/sequence-airplane-battle-20261030-164149/airplane-battle-frame-sequence.html",
+    "quality_profile": "showcase"
+  },
+  "participants": [
+    { "id": "input", "type": "external", "label": "玩家输入", "sublabel": "键盘 / 关窗" },
+    { "id": "pygame", "type": "messagebus", "label": "pygame 运行时", "sublabel": "事件 / 时钟 / 按键" },
+    { "id": "game", "type": "backend", "label": "Game", "sublabel": "play() 主循环 · update()" },
+    { "id": "player", "type": "backend", "label": "Player", "sublabel": "move() / hit()" },
+    { "id": "sound", "type": "backend", "label": "SoundBoard", "sublabel": "play() / toggle_mute()" },
+    { "id": "render", "type": "frontend", "label": "渲染", "sublabel": "绘制缓冲 / 上屏" },
+    { "id": "rng", "type": "external", "label": "random", "sublabel": "choice / randint" }
+  ],
+  "segments": [
+    { "from": 156, "to": 404, "label": "事件 → 计时" },
+    { "from": 412, "to": 504, "label": "暂停分支" },
+    { "from": 512, "to": 632, "label": "采样输入 · move()" },
+    { "from": 638, "to": 1016, "label": "射击 / 生成 / 碰撞" },
+    { "from": 1024, "to": 1258, "label": "绘制 · 限帧" }
+  ],
+  "messages": [
+    { "id": "keydown", "from": "input", "to": "pygame", "y": 170, "label": "KEYDOWN / QUIT", "variant": "default" },
+    { "id": "event-get", "from": "game", "to": "pygame", "y": 198, "label": "event.get() 拉取事件", "variant": "emphasis" },
+    {
+      "id": "event-list",
+      "from": "pygame",
+      "to": "game",
+      "y": 226,
+      "label": "事件列表（逐条处理）",
+      "variant": "return",
+      "note": "QUIT 或 ESC → running = False；B → paused 取反"
+    },
+    {
+      "id": "toggle-mute",
+      "from": "game",
+      "to": "sound",
+      "y": 286,
+      "label": "toggle_mute()（V 键）",
+      "variant": "default",
+      "note": "返回 muted：为真时全部音效音量置 0"
+    },
+    { "id": "muted-back", "from": "sound", "to": "game", "y": 344, "label": "muted 布尔值", "variant": "return" },
+    {
+      "id": "ticks",
+      "from": "game",
+      "to": "pygame",
+      "y": 372,
+      "label": "get_ticks() 取当前毫秒",
+      "variant": "default",
+      "note": "返回 now：射击冷却 / 生成间隔 / 爆炸计时共用"
+    },
+
+    {
+      "id": "draw-paused",
+      "from": "game",
+      "to": "render",
+      "y": 418,
+      "label": "draw() 绘制当前画面",
+      "variant": "emphasis",
+      "note": "paused 为真：跳过 update()，本帧只画"
+    },
+    { "id": "tick-paused", "from": "game", "to": "pygame", "y": 476, "label": "clock.tick(60) 结束本帧", "variant": "default" },
+
+    { "id": "keys-poll", "from": "game", "to": "pygame", "y": 520, "label": "key.get_pressed() 采样按键", "variant": "emphasis" },
+    { "id": "keys-back", "from": "pygame", "to": "game", "y": 548, "label": "keys 按键状态", "variant": "return" },
+    { "id": "move", "from": "game", "to": "player", "y": 576, "label": "move(keys)", "variant": "emphasis" },
+    {
+      "id": "move-back",
+      "from": "player",
+      "to": "game",
+      "y": 604,
+      "label": "返回 None；x、y 就地更新",
+      "variant": "return"
+    },
+
+    {
+      "id": "shoot",
+      "from": "game",
+      "to": "sound",
+      "y": 642,
+      "label": "play(\"shoot\")（空格 · 冷却 100ms）",
+      "variant": "default",
+      "note": "返回 None；随后追加子弹并把 last_shot 设为 now"
+    },
+    {
+      "id": "spawn",
+      "from": "game",
+      "to": "rng",
+      "y": 700,
+      "label": "choice() + randint() 决定敌机",
+      "variant": "default",
+      "note": "条件：距上次 ≥ 300ms 且敌机不足 15 架"
+    },
+    {
+      "id": "bullet-hit",
+      "from": "game",
+      "to": "pygame",
+      "y": 758,
+      "label": "colliderect(子弹, 敌机)",
+      "variant": "default",
+      "note": "先位移：敌机 +3px、子弹 −10px，越界用列表推导剔除"
+    },
+    { "id": "hit-bool", "from": "pygame", "to": "game", "y": 816, "label": "True / False", "variant": "return" },
+    {
+      "id": "destroyed",
+      "from": "game",
+      "to": "sound",
+      "y": 844,
+      "label": "play(\"destroyed\")",
+      "variant": "default",
+      "note": "命中：删子弹与敌机、score += 100、spawn_explosion()"
+    },
+    {
+      "id": "player-hit",
+      "from": "game",
+      "to": "player",
+      "y": 902,
+      "label": "hit(now)",
+      "variant": "emphasis",
+      "note": "撞机先删敌机；now < invulnerable_until 时返回 False"
+    },
+    { "id": "hit-another", "from": "player", "to": "game", "y": 974, "label": "True 扣血 / False 免疫", "variant": "return" },
+    {
+      "id": "die",
+      "from": "game",
+      "to": "sound",
+      "y": 1002,
+      "label": "play(\"die\")（life ≤ 0）",
+      "variant": "default",
+      "note": "_wait_with_events(3000) 循环 draw+tick 后 running = False"
+    },
+
+    {
+      "id": "draw",
+      "from": "game",
+      "to": "render",
+      "y": 1060,
+      "label": "draw() 本帧绘制",
+      "variant": "emphasis",
+      "note": "update 末尾先剔除超过 1000ms 的爆炸记录"
+    },
+    {
+      "id": "blit",
+      "from": "game",
+      "to": "render",
+      "y": 1118,
+      "label": "blit 背景→飞船→子弹→敌机→爆炸→HUD",
+      "variant": "emphasis",
+      "note": "爆炸帧 = int((now − start_time) / 250ms)，封顶第 4 帧"
+    },
+    { "id": "surface-back", "from": "render", "to": "game", "y": 1176, "label": "Surface 缓冲区已更新", "variant": "return" },
+    { "id": "flip", "from": "game", "to": "render", "y": 1204, "label": "display.flip() 上屏", "variant": "emphasis" },
+    {
+      "id": "tick",
+      "from": "game",
+      "to": "pygame",
+      "y": 1232,
+      "label": "clock.tick(60) 限帧 ~16ms",
+      "variant": "default",
+      "note": "下一帧继续 while running；play() 结束返回 0"
+    }
+  ],
+  "activations": [
+    { "participant": "input", "from": 160, "to": 192, "type": "external" },
+    { "participant": "pygame", "from": 192, "to": 250, "type": "messagebus" },
+    { "participant": "pygame", "from": 364, "to": 392, "type": "messagebus" },
+    { "participant": "pygame", "from": 468, "to": 490, "type": "messagebus" },
+    { "participant": "pygame", "from": 512, "to": 556, "type": "messagebus" },
+    { "participant": "pygame", "from": 750, "to": 830, "type": "messagebus" },
+    { "participant": "pygame", "from": 1224, "to": 1246, "type": "messagebus" },
+    { "participant": "game", "from": 196, "to": 1240, "type": "backend" },
+    { "participant": "player", "from": 570, "to": 612, "type": "backend" },
+    { "participant": "player", "from": 896, "to": 968, "type": "backend" },
+    { "participant": "sound", "from": 280, "to": 352, "type": "backend" },
+    { "participant": "sound", "from": 636, "to": 712, "type": "backend" },
+    { "participant": "sound", "from": 838, "to": 860, "type": "backend" },
+    { "participant": "sound", "from": 996, "to": 1018, "type": "backend" },
+    { "participant": "rng", "from": 694, "to": 716, "type": "external" },
+    { "participant": "render", "from": 410, "to": 486, "type": "frontend" },
+    { "participant": "render", "from": 1054, "to": 1214, "type": "frontend" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "一帧的骨架",
+      "items": [
+        "顺序按源码：先 handle_events()，再取 now，再分 paused 分支",
+        "paused 分支只绘制 + tick(60)，不进入 update()",
+        "smoke-test 模式用 _NONE_KEYS 顶替真实按键，自动开火"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "返回值与状态回传",
+      "items": [
+        "Player.hit() 返回布尔：无敌帧内 False，不扣血也不生成爆炸",
+        "SoundBoard.play() 返回 None：enabled / muted 为假时直接 return",
+        "pygame.time.Clock.tick() 返回本帧毫秒，play() 结束返回 0"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "被省略的路径",
+      "items": [
+        "引导页 show_instructions()、素材与音效加载、main() 启动",
+        "子弹与敌机的越界剔除写在 update() 内，用列表推导完成",
+        "死亡后 _wait_with_events() 内部循环 draw() + tick(60)"
+      ]
+    }
+  ]
+}

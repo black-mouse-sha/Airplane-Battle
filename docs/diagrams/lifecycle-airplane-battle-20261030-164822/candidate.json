@@ -1,0 +1,140 @@
+{
+  "schema_version": 3,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "飞机大战 · 运行状态机",
+    "subtitle": "game.py：启动 → 引导页 → 主循环 → 两种终局",
+    "locale": "zh-CN",
+    "output": "docs/diagrams/lifecycle-airplane-battle-20261030-164822/airplane-battle-runtime-states.html",
+    "quality_profile": "showcase"
+  },
+  "mainPath": ["boot", "init", "intro", "playing", "closed"],
+  "states": [
+    {
+      "id": "boot",
+      "type": "start",
+      "label": "启动",
+      "sublabel": "解析 argv 参数",
+      "tag": "main()"
+    },
+    {
+      "id": "init",
+      "type": "active",
+      "label": "初始化",
+      "sublabel": "pygame / mixer init",
+      "tag": "init_pygame()"
+    },
+    {
+      "id": "intro",
+      "type": "waiting",
+      "label": "引导页",
+      "sublabel": "等待 Enter",
+      "tag": "show_instructions"
+    },
+    {
+      "id": "playing",
+      "type": "active",
+      "label": "游戏进行",
+      "sublabel": "事件 → 更新 → 绘制",
+      "tag": "play() 主循环"
+    },
+    {
+      "id": "closed",
+      "type": "success",
+      "label": "正常退出",
+      "sublabel": "running = False",
+      "tag": "finally 收尾"
+    },
+    {
+      "id": "audio_degraded",
+      "type": "neutral",
+      "label": "静音降级",
+      "sublabel": "audio_ok = False",
+      "tag": "降级继续"
+    },
+    {
+      "id": "paused",
+      "type": "waiting",
+      "label": "暂停",
+      "sublabel": "只重绘",
+      "tag": "B 键切换"
+    },
+    {
+      "id": "hurt",
+      "type": "waiting",
+      "label": "受伤无敌",
+      "sublabel": "800ms 守卫",
+      "tag": "不扣血"
+    },
+    {
+      "id": "muted",
+      "type": "neutral",
+      "label": "静音中",
+      "sublabel": "muted = True",
+      "tag": "叠加态"
+    },
+    {
+      "id": "dead",
+      "type": "waiting",
+      "label": "死亡停顿",
+      "sublabel": "停留 3000ms",
+      "tag": "仍响应 ESC"
+    },
+    {
+      "id": "dead_end",
+      "type": "failure",
+      "label": "生命耗尽退出",
+      "sublabel": "分数定格",
+      "tag": "finally 收尾"
+    }
+  ],
+  "transitions": [
+    { "id": "boot-init", "from": "boot", "to": "init", "label": "参数就绪" },
+    { "id": "init-intro", "from": "init", "to": "intro", "label": "窗口就绪" },
+    { "id": "intro-playing", "from": "intro", "to": "playing", "label": "Enter" },
+    { "id": "playing-closed", "from": "playing", "to": "closed", "label": "ESC" },
+    { "id": "init-audio", "from": "init", "to": "audio_degraded", "label": "mixer 失败", "variant": "dashed" },
+    { "id": "audio-intro", "from": "audio_degraded", "to": "intro", "label": "静音继续" },
+    { "id": "intro-closed", "from": "intro", "to": "closed", "label": "ESC" },
+    { "id": "playing-paused", "from": "playing", "to": "paused", "label": "B 键" },
+    { "id": "paused-playing", "from": "paused", "to": "playing" },
+    { "id": "paused-closed", "from": "paused", "to": "closed", "label": "ESC" },
+    { "id": "playing-hurt", "from": "playing", "to": "hurt", "label": "撞机" },
+    { "id": "hurt-playing", "from": "hurt", "to": "playing", "label": "到期" },
+    { "id": "playing-muted", "from": "playing", "to": "muted", "label": "V 键" },
+    { "id": "muted-playing", "from": "muted", "to": "playing" },
+    { "id": "playing-dead", "from": "playing", "to": "dead", "label": "生命归零", "variant": "emphasis" },
+    { "id": "dead-dead_end", "from": "dead", "to": "dead_end", "label": "3s 到期" },
+    { "id": "dead-closed", "from": "dead", "to": "closed", "label": "ESC" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "起始与引导",
+      "items": [
+        "--mute 在引导页之前就把 SoundBoard 调成静音",
+        "mixer.init() 失败只关掉音效，画面流程照常",
+        "引导页只认 Enter；ESC 与关闭窗口直接退出",
+        "自检模式跳过引导页，跑满帧数后 return 0"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "瞬时守卫与叠加态",
+      "items": [
+        "撞机扣 1 血并开 800ms 无敌，避免同帧连扣",
+        "暂停只翻转 paused：循环还在跑，只重绘不更新",
+        "静音是叠加态：只改 muted，可与游戏进行、暂停共存"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "两种终局",
+      "items": [
+        "正常退出：ESC / 关闭窗口，或自检帧数跑满",
+        "生命耗尽退出：先播 die、停顿 3000ms 再落 running",
+        "两条路径都由 finally 保证执行 pygame.quit()"
+      ]
+    }
+  ]
+}

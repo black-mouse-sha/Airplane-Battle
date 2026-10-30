@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>飞机大战 · Airplane Battle</title>
+<meta name="description" content="用 Pygame 写的复古太空射击小游戏：单文件、零配置、双击就跑。">
+<style>
+  :root{
+    --bg:#070b16;
+    --panel:rgba(18,26,45,.72);
+    --line:rgba(120,170,255,.22);
+    --text:#e8eefc;
+    --muted:#93a4c4;
+    --accent:#4f8cff;
+    --accent2:#39d3a3;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;
+    background:
+      radial-gradient(1100px 620px at 18% -12%, #12244a 0%, transparent 62%),
+      radial-gradient(900px 520px at 88% 8%, #0d3a35 0%, transparent 58%),
+      var(--bg);
+    min-height:100vh;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;opacity:.35;
+    background-image:radial-gradient(#ffffff 1px, transparent 1px);
+    background-size:44px 44px;mask-image:linear-gradient(#000,transparent 72%);
+  }
+  .wrap{position:relative;max-width:1000px;margin:0 auto;padding:64px 22px 72px}
+  header{text-align:center}
+  header img{width:96px;image-rendering:auto;filter:drop-shadow(0 10px 24px rgba(79,140,255,.45))}
+  h1{margin:14px 0 6px;font-size:clamp(30px,5vw,46px);letter-spacing:.5px}
+  .tag{color:var(--muted);margin:0 auto;max-width:620px}
+  .cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:28px 0 8px}
+  a.btn{
+    display:inline-block;padding:11px 20px;border-radius:12px;text-decoration:none;font-weight:600;
+    border:1px solid var(--line);color:var(--text);background:var(--panel);transition:.18s;
+  }
+  a.btn:hover{transform:translateY(-2px);border-color:rgba(120,170,255,.55)}
+  a.primary{background:linear-gradient(135deg,var(--accent),#2f6fed);border-color:transparent;box-shadow:0 12px 28px rgba(47,111,237,.35)}
+  a.ghost{border-color:rgba(57,211,163,.4);color:#b9ffe4}
+  .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:34px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;backdrop-filter:blur(6px)}
+  .card h2{margin:0 0 10px;font-size:17px;letter-spacing:.3px}
+  .card p,.card li{color:var(--muted);margin:6px 0;font-size:14.5px}
+  .card ul{padding-left:18px;margin:0}
+  kbd{background:#0b1220;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 7px;font-size:13px;color:#cfe0ff}
+  .shots{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:18px}
+  .shots figure{margin:0;text-align:center}
+  .shots img{width:100%;border-radius:14px;border:1px solid var(--line);box-shadow:0 18px 40px rgba(0,0,0,.45)}
+  .shots figcaption{color:var(--muted);font-size:13px;margin-top:8px}
+  section{margin-top:44px}
+  h3.section{font-size:20px;margin:0 0 4px}
+  .section-sub{color:var(--muted);margin:0 0 16px;font-size:14px}
+  .diagrams a{display:flex;justify-content:space-between;gap:12px;align-items:center;text-decoration:none;color:var(--text);
+    padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(10,16,30,.6);margin-bottom:10px;transition:.16s}
+  .diagrams a:hover{border-color:rgba(120,170,255,.55);transform:translateX(2px)}
+  .diagrams span{color:var(--muted);font-size:13px}
+  footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--line);color:var(--muted);font-size:13.5px;text-align:center}
+  footer a{color:#9dc0ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <img src="docs/images/icon.png" alt="飞机大战图标">
+    <h1>飞机大战 · Airplane Battle</h1>
+    <p class="tag">用 Pygame 写的复古太空射击：方向键躲、空格打、别让敌机撞上来。单文件、零配置、双击就跑。</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/black-mouse-sha/Airplane-Battle/archive/refs/heads/main.zip">下载 ZIP</a>
+      <a class="btn" href="https://github.com/black-mouse-sha/Airplane-Battle">GitHub 仓库</a>
+      <a class="btn ghost" href="README.md">README</a>
+    </div>
+  </header>
+
+  <div class="shots">
+    <figure>
+      <img src="docs/images/intro.png" alt="引导页">
+      <figcaption>引导页：Enter 开始，B 暂停，V 静音</figcaption>
+    </figure>
+    <figure>
+      <img src="docs/images/gameplay.png" alt="对局中">
+      <figcaption>对局中：命中 +100，撞机 -1 血</figcaption>
+    </figure>
+    <figure>
+      <img src="docs/images/paused.png" alt="暂停">
+      <figcaption>暂停：只重绘不更新</figcaption>
+    </figure>
+  </div>
+
+  <section>
+    <h3 class="section">30 秒上手</h3>
+    <p class="section-sub">需要 Python 3.9+，唯一依赖是 pygame。</p>
+    <div class="grid">
+      <div class="card">
+        <h2>Windows</h2>
+        <p>双击 <kbd>run.bat</kbd>：自动建虚拟环境、装依赖、开游戏。</p>
+      </div>
+      <div class="card">
+        <h2>macOS / Linux</h2>
+        <p><code>chmod +x run.sh &amp;&amp; ./run.sh</code></p>
+      </div>
+      <div class="card">
+        <h2>手动</h2>
+        <p><code>pip install -r requirements.txt</code><br><code>python game.py</code></p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="section">操作</h3>
+    <p class="section-sub">没有鼠标，全是键盘。</p>
+    <div class="grid">
+      <div class="card">
+        <h2>移动 / 射击</h2>
+        <p><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> 移动飞船，<kbd>空格</kbd> 发射（100ms 冷却）。</p>
+      </div>
+      <div class="card">
+        <h2>状态</h2>
+        <p><kbd>B</kbd> 暂停 / 继续，<kbd>V</kbd> 静音，<kbd>ESC</kbd> 直接退出。</p>
+      </div>
+      <div class="card">
+        <h2>规则</h2>
+        <p>5 条命，击毁一架 +100 分，被撞 -1 血并进入 800ms 无敌；敌机每 300ms 生成，最多 15 架。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="section">6 张交互式架构图</h3>
+    <p class="section-sub">每张都是自包含 HTML，带深色/浅色主题与动效，节点标注到源码。</p>
+    <div class="diagrams" id="diagrams">
+      <a href="docs/diagrams/architecture-airplane-battle-20261030-165417/airplane-battle-architecture.html">组件架构 <span>四层依赖关系</span></a>
+      <a href="docs/diagrams/workflow-airplane-battle-20261030-165313/airplane-battle-workflow.html">一局流程 <span>启动 → 循环 → 退出</span></a>
+      <a href="docs/diagrams/sequence-airplane-battle-20261030-164149/airplane-battle-frame-sequence.html">单帧时序 <span>16ms 内的调用链</span></a>
+      <a href="docs/diagrams/lifecycle-airplane-battle-20261030-164822/airplane-battle-runtime-states.html">运行状态机 <span>11 态 17 转移</span></a>
+      <a href="docs/diagrams/dataflow-airplane-battle-20261030-165453/airplane-battle-asset-flow.html">素材数据流 <span>磁盘 → Surface → 画面</span></a>
+      <a href="docs/diagrams/tree-airplane-battle-20261030-164907/airplane-battle-modules.html">仓库与模块树 <span>文件树 + 内部结构</span></a>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="section">还想看什么</h3>
+    <div class="grid">
+      <div class="card">
+        <h2>使用手册</h2>
+        <p><a href="docs/USAGE.md" style="color:#9dc0ff">docs/USAGE.md</a>：安装、参数、换素材、报错排查。</p>
+      </div>
+      <div class="card">
+        <h2>架构说明</h2>
+        <p><a href="docs/ARCHITECTURE.md" style="color:#9dc0ff">docs/ARCHITECTURE.md</a>：设计取舍、数据模型、帧预算、技术债。</p>
+      </div>
+      <div class="card">
+        <h2>更新记录</h2>
+        <p><a href="CHANGELOG.md" style="color:#9dc0ff">CHANGELOG.md</a>：v1.2.0 修了哪些 bug、补了哪些工程化。</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>MIT License © 2026 LittlePerson · 素材来自网络，仅作学习演示</p>
+    <p><a href="https://github.com/black-mouse-sha/Airplane-Battle">github.com/black-mouse-sha/Airplane-Battle</a></p>
+  </footer>
+
+</div>
+</body>
+</html>
